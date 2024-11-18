@@ -25,6 +25,7 @@
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <c10/cuda/CUDAFunctions.h>
 #include <ATen/cuda/CUDAGraphsUtils.cuh>
+#include <c10/cuda/CUDAException.h>
 
 #ifdef USE_NCCL
 #include <torch/csrc/cuda/python_nccl.h>
@@ -1345,6 +1346,21 @@ PyObject* THCPModule_setBenchmarkLimitCuDNN(PyObject* _unused, PyObject* arg) {
   Py_RETURN_NONE;
 }
 
+PyObject* THNPModule_cudaInitSyncRecord(PyObject* self, PyObject* noargs)
+{
+    HANDLE_TH_ERRORS
+    c10::SyncRecorder::init_record();
+    Py_RETURN_NONE;
+    END_HANDLE_TH_ERRORS
+}
+
+PyObject* THNPModule_cudaFinishSyncRecord(PyObject* self, PyObject* noargs)
+{
+    HANDLE_TH_ERRORS
+    return PyLong_FromLong(c10::SyncRecorder::finish_record());
+    END_HANDLE_TH_ERRORS
+}
+
 PyObject* THCPModule_benchmarkLimitCuDNN(PyObject* _unused, PyObject* noargs) {
   return THPUtils_packInt32(at::globalContext().benchmarkLimitCuDNN());
 }
@@ -1467,6 +1483,14 @@ static struct PyMethodDef _THCPModule_methods[] = {
     {"_cuda_set_cudnn_benchmark_limit",
      THCPModule_setBenchmarkLimitCuDNN,
      METH_O,
+     nullptr},
+    {"_cuda_init_sync_record",
+     THNPModule_cudaInitSyncRecord,
+     METH_NOARGS,
+     nullptr},
+    {"_cuda_finish_sync_record",
+     THNPModule_cudaFinishSyncRecord,
+     METH_NOARGS,
      nullptr},
 #ifdef USE_NCCL
     {"_nccl_version", THCPModule_nccl_version, METH_NOARGS, nullptr},

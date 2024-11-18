@@ -135,7 +135,9 @@ void device_synchronize() {
   if (C10_UNLIKELY(interp)) {
     (*interp)->trace_gpu_device_synchronization();
   }
+  c10::SyncRecorder::start_record(2);
   C10_CUDA_CHECK(cudaDeviceSynchronize());
+  c10::SyncRecorder::end_record();
 }
 
 // this function has to be called from callers performing cuda synchronizing

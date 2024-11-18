@@ -5,6 +5,7 @@
 #include <c10/core/impl/GPUTrace.h>
 #include <c10/cuda/CUDAStream.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <ATen/cuda/Exceptions.h>
 #include <c10/util/Exception.h>
 
@@ -163,7 +164,9 @@ struct TORCH_CUDA_CPP_API CUDAEvent {
       if (C10_UNLIKELY(interp)) {
           (*interp)->trace_gpu_event_synchronization(reinterpret_cast<uintptr_t>(event_));
       }
+      c10::SyncRecorder::start_record(3);
       AT_CUDA_CHECK(cudaEventSynchronize(event_));
+      c10::SyncRecorder::end_record();
     }
   }
 

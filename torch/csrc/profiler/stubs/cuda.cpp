@@ -3,6 +3,7 @@
 #include <nvToolsExt.h>
 
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <c10/util/irange.h>
 #include <torch/csrc/profiler/stubs/base.h>
 #include <torch/csrc/profiler/util.h>
@@ -59,8 +60,10 @@ struct CUDAMethods : public ProfilerStubs {
       const ProfilerVoidEventStub* event2_) const override {
     auto event = (const ProfilerEventStub*)(event_);
     auto event2 = (const ProfilerEventStub*)(event2_);
+    c10::SyncRecorder::start_record(3);
     TORCH_CUDA_CHECK(cudaEventSynchronize(event->get()));
     TORCH_CUDA_CHECK(cudaEventSynchronize(event2->get()));
+    c10::SyncRecorder::end_record();
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     float ms;
     TORCH_CUDA_CHECK(cudaEventElapsedTime(&ms, event->get(), event2->get()));
@@ -91,7 +94,9 @@ struct CUDAMethods : public ProfilerStubs {
   }
 
   void synchronize() const override {
+    c10::SyncRecorder::start_record(2);
     TORCH_CUDA_CHECK(cudaDeviceSynchronize());
+    c10::SyncRecorder::end_record();
   }
 
   bool enabled() const override {

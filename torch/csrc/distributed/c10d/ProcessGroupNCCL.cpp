@@ -16,6 +16,7 @@
 #include <c10/core/DeviceType.h>
 #include <c10/cuda/CUDAGraphsC10Utils.h>
 #include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAException.h>
 #include <c10/util/CallOnce.h>
 #include <c10/util/Exception.h>
 #include <c10/util/Logging.h>
@@ -559,7 +560,9 @@ void ProcessGroupNCCL::WorkNCCL::synchronizeInternal(
     at::cuda::OptionalCUDAGuard gpuGuard;
     for (auto& device : devices_) {
       gpuGuard.set_index(device.index());
+      c10::SyncRecorder::start_record(2);
       AT_CUDA_CHECK(cudaDeviceSynchronize());
+      c10::SyncRecorder::end_record();
     }
   }
 }

@@ -484,7 +484,10 @@ struct ExpandableSegment {
     // cannot call c10::cuda::stream_synchronize because
     // it might grab the GIL which can lead to a deadlock
     // Locking order must be GIL -> Allocator Lock
+    
+    c10::SyncRecorder::start_record(1);
     C10_CUDA_CHECK(cudaStreamSynchronize(stream_));
+    c10::SyncRecorder::end_record();
     for (auto i : c10::irange(begin, end)) {
       CUmemGenericAllocationHandle h = handles_.at(i).value();
       handles_.at(i) = c10::nullopt;
@@ -2944,7 +2947,9 @@ class DeviceCachingAllocator {
         EventPool::Event event = std::move(e.first);
         Block* block = e.second;
 
+        c10::SyncRecorder::start_record(3);
         C10_CUDA_CHECK(cudaEventSynchronize(*event));
+        c10::SyncRecorder::end_record();
 
         block->event_count--;
         if (block->event_count == 0) {

@@ -94,7 +94,9 @@ C10_CUDA_API void __inline__ memcpy_and_sync(
   C10_CUDA_CHECK(hipMemcpyWithStream(dst, src, nbytes, kind, stream));
 #else
   C10_CUDA_CHECK(cudaMemcpyAsync(dst, src, nbytes, kind, stream));
+  c10::SyncRecorder::start_record(1);
   C10_CUDA_CHECK(cudaStreamSynchronize(stream));
+  c10::SyncRecorder::end_record();
 #endif
 }
 
@@ -108,7 +110,9 @@ C10_CUDA_API void __inline__ stream_synchronize(cudaStream_t stream) {
     (*interp)->trace_gpu_stream_synchronization(
         reinterpret_cast<uintptr_t>(stream));
   }
+  c10::SyncRecorder::start_record(1);
   C10_CUDA_CHECK(cudaStreamSynchronize(stream));
+  c10::SyncRecorder::end_record();
 }
 
 C10_CUDA_API bool hasPrimaryContext(DeviceIndex device_index);

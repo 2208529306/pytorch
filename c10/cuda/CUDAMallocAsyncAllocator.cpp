@@ -490,7 +490,10 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
 
         cudaMemPool_t mempool = nullptr;
         cudaDeviceGetDefaultMemPool(&mempool, dev);
+
+        c10::SyncRecorder::start_record(2);
         cudaDeviceSynchronize();
+        c10::SyncRecorder::end_record();
         cudaMemPoolTrimTo(mempool, 0);
       }
     }

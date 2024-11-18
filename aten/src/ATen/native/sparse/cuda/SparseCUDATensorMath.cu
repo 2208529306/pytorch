@@ -43,6 +43,8 @@
 #include <thrust/sort.h>
 #include <thrust/system/cuda/execution_policy.h>
 
+#include <c10/cuda/CUDAException.h>
+
 #include <bitset>
 #include <cusparse.h>
 #include <cuda_runtime_api.h>
@@ -734,7 +736,9 @@ void search_end_matrix_indices(int64_t* mat_el_end_indices, int64_t num_matrices
   );
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 
+  c10::SyncRecorder::start_record(2);
   cudaDeviceSynchronize();
+  c10::SyncRecorder::end_record();
 }
 
 cudaDataType getTensorCudaDataType(Tensor self) {

@@ -19,6 +19,15 @@
 // This needs to be declared here instead util/Exception.h for proper conversion
 // during hipify.
 namespace c10 {
+
+class C10_CUDA_API SyncRecorder{
+public:
+    static void init_record();
+    static int64_t finish_record();
+    static void start_record(int type);
+    static void end_record();
+};
+
 class C10_CUDA_API CUDAError : public c10::Error {
   using Error::Error;
 };
